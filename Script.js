@@ -17,39 +17,46 @@ let jumpStrength = -10;
 
 let platforms = [];
 
+let levelStartTime = null;
+let levelFinished = false;
+let finishX = null;
+
 const levels = {
     easy: {
         gravity: 0.4,
         speed: 4,
         jump: -12,
+        finishX: 720,
         platforms: [
-            {x: 0, y: 500, width: 800, height: 20},
-            {x: 150, y: 420, width: 150, height: 20},
-            {x: 360, y: 360, width: 120, height: 20},
-            {x: 560, y: 300, width: 160, height: 20}
+            {x: 0, y: 500, width: 1000, height: 20},
+            {x: 150, y: 420, width: 250, height: 20},
+            {x: 420, y: 360, width: 180, height: 20},
+            {x: 640, y: 300, width: 260, height: 20}
         ]
     },
     medium: {
         gravity: 0.55,
         speed: 5,
         jump: -10,
+        finishX: 740,
         platforms: [
-            {x: 0, y: 500, width: 800, height: 20},
-            {x: 220, y: 420, width: 100, height: 20},
-            {x: 420, y: 360, width: 90, height: 20},
-            {x: 600, y: 310, width: 90, height: 20}
+            {x: 0, y: 500, width: 1100, height: 20},
+            {x: 220, y: 420, width: 160, height: 20},
+            {x: 420, y: 360, width: 140, height: 20},
+            {x: 600, y: 310, width: 180, height: 20}
         ]
     },
     hard: {
         gravity: 0.75,
         speed: 6,
         jump: -9,
+        finishX: 760,
         platforms: [
-            {x: 0, y: 500, width: 800, height: 20},
-            {x: 180, y: 440, width: 80, height: 20},
-            {x: 330, y: 380, width: 70, height: 20},
-            {x: 520, y: 320, width: 60, height: 20},
-            {x: 700, y: 260, width: 60, height: 20}
+            {x: 0, y: 500, width: 1200, height: 20},
+            {x: 180, y: 440, width: 140, height: 20},
+            {x: 360, y: 380, width: 120, height: 20},
+            {x: 560, y: 320, width: 110, height: 20},
+            {x: 760, y: 260, width: 120, height: 20}
         ]
     }
 };
@@ -74,6 +81,12 @@ function applyLevel(levelName) {
         if (btn) btn.classList.toggle('selected', n === levelName);
     });
     resetPlayer();
+    // setup finish line and timer
+    finishX = lvl.finishX || (canvas.width - 40);
+    levelStartTime = performance.now();
+    levelFinished = false;
+    const timeLabel = document.getElementById('timeDisplay');
+    if (timeLabel) timeLabel.textContent = 'Time: --';
 }
 
 function resetPlayer() {
@@ -105,7 +118,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (easyBtn) easyBtn.addEventListener('click', () => applyLevel('easy'));
     if (mediumBtn) mediumBtn.addEventListener('click', () => applyLevel('medium'));
     if (hardBtn) hardBtn.addEventListener('click', () => applyLevel('hard'));
-    if (startBtn) startBtn.addEventListener('click', () => resetPlayer());
+    if (startBtn) startBtn.addEventListener('click', () => { resetPlayer(); levelStartTime = performance.now(); levelFinished = false; const timeLabel = document.getElementById('timeDisplay'); if (timeLabel) timeLabel.textContent = 'Time: --'; });
     applyLevel(currentLevel);
 });
 
@@ -130,6 +143,14 @@ function update() {
                 player.onGround = true;
             }
         }
+    }
+
+    // Check finish crossing
+    if (!levelFinished && finishX !== null && (player.x + player.width) >= finishX) {
+        levelFinished = true;
+        const t = ((performance.now() - levelStartTime) / 1000).toFixed(2);
+        const timeLabel = document.getElementById('timeDisplay');
+        if (timeLabel) timeLabel.textContent = 'Time: ' + t + 's';
     }
 
     // Handle horizontal movement
@@ -160,6 +181,17 @@ function draw() {
     ctx.fillStyle = 'green';
     for (let p of platforms) {
         ctx.fillRect(p.x, p.y, p.width, p.height);
+    }
+
+    // Draw finish line
+    if (finishX !== null) {
+        ctx.fillStyle = 'blue';
+        ctx.fillRect(finishX, 0, 6, canvas.height);
+        // small flag near the ground level
+        let flagY = canvas.height - 120;
+        if (platforms.length) flagY = platforms[0].y - 36;
+        ctx.fillStyle = 'yellow';
+        ctx.fillRect(finishX + 4, flagY, 12, 8);
     }
 
     // Draw player

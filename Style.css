@@ -43,3 +43,9 @@ canvas {
     margin-left: 8px;
     font-weight: bold;
 }
+
+#timeDisplay {
+    margin-left: 8px;
+    font-weight: normal;
+    color: #333;
+}
