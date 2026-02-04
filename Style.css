@@ -10,3 +10,36 @@ body {
 canvas {
     border: 1px solid #000;
 }
+
+#ui {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+}
+
+#levelControls {
+    background: rgba(255,255,255,0.9);
+    padding: 8px 10px;
+    border-radius: 6px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    font-family: sans-serif;
+}
+
+#levelControls button {
+    margin-right: 6px;
+    padding: 6px 10px;
+    border: 1px solid #ccc;
+    background: #fff;
+    cursor: pointer;
+}
+
+#levelControls button.selected {
+    background: #007bff;
+    color: #fff;
+    border-color: #006ae6;
+}
+
+#currentLevel {
+    margin-left: 8px;
+    font-weight: bold;
+}
