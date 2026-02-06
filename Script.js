@@ -108,8 +108,17 @@ function randomizePlatforms(levelName) {
     // Always keep the ground platform
     randomized.push({...groundPlatform});
     
+    // Keep first jumping platform fixed to spawn under player (guarantee safe spawn)
+    const firstPlatform = lvl.platforms[1];
+    randomized.push({
+        x: 50,
+        y: 420,
+        width: firstPlatform.width,
+        height: firstPlatform.height
+    });
+    
     // Randomize other platforms with more conservative ranges
-    for (let i = 1; i < lvl.platforms.length; i++) {
+    for (let i = 2; i < lvl.platforms.length; i++) {
         const platform = lvl.platforms[i];
         // Smaller randomization to keep platforms playable
         const randomVariation = Math.random() * 120 - 60; // Range: -60 to +60
