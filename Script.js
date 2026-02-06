@@ -109,7 +109,6 @@ function randomizePlatforms(levelName) {
     randomized.push({...groundPlatform});
     
     // Keep first jumping platform fixed to spawn under player (guarantee safe spawn)
-    // Player spawns at x=100, width=20, so spans 100-120. Make platform wide to catch them.
     randomized.push({
         x: 50,
         y: 420,
@@ -117,26 +116,42 @@ function randomizePlatforms(levelName) {
         height: 20
     });
     
-    // Calculate max jump height for this difficulty
+    // Physics: max jump height for this difficulty
     const jumpVel = Math.abs(lvl.jump);
     const gravity = lvl.gravity;
-    const maxJumpHeight = (jumpVel * jumpVel) / (2 * gravity);
-    const maxVerticalGap = Math.floor(maxJumpHeight * 0.7); // Use 70% of max to be safe
+    const playerSpeed = lvl.speed;
     
-    // Randomize other platforms with difficulty-aware constraints
-    let prevPlatformY = 420; // Start from spawn platform Y
+    // Max height the player can reach
+    const maxJumpHeight = (jumpVel * jumpVel) / (2 * gravity);
+    
+    // Randomize other platforms with safe constraints
+    let prevX = 50 + 200; // End of spawn platform
+    let prevY = 420;
+    
     for (let i = 2; i < lvl.platforms.length; i++) {
         const platform = lvl.platforms[i];
         
-        // Horizontal randomization
-        const randomVariation = Math.random() * 100 - 50; // Range: -50 to +50
-        const newX = Math.max(50, Math.min(platform.x + randomVariation, lvl.worldWidth - platform.width - 50));
+        // Small horizontal randomization to stay within jumping range
+        const baseX = platform.x;
+        const randomVariation = Math.random() * 80 - 40; // Range: -40 to +40
+        const newX = Math.max(prevX + 80, Math.min(baseX + randomVariation, lvl.worldWidth - platform.width - 50));
         
-        // Vertical randomization - constrained to be reachable
-        // Platform can be lower (easier) or higher (harder) but not more than maxVerticalGap
-        const minY = Math.max(250, prevPlatformY - maxVerticalGap);
-        const maxY = Math.min(480, prevPlatformY + 30);
-        const newY = Math.floor(minY + Math.random() * (maxY - minY));
+        // Horizontal gap between platforms
+        const horizontalGap = newX - prevX;
+        
+        // Vertical constraint based on horizontal distance
+        // Farther gaps need lower platforms (easier to reach)
+        // Close gaps can have higher platforms
+        const gapRatio = Math.max(0.3, Math.min(1.0, 300 / horizontalGap));
+        const allowedVerticalRange = Math.floor(maxJumpHeight * gapRatio * 0.8);
+        
+        // Platforms can go up by allowedVerticalRange or down significantly
+        const minY = Math.max(250, prevY - allowedVerticalRange);
+        const maxY = Math.min(480, prevY + 60); // Can go down more freely
+        
+        const newY = minY < maxY ? 
+            Math.floor(minY + Math.random() * (maxY - minY)) : 
+            minY;
         
         randomized.push({
             x: newX,
@@ -145,9 +160,12 @@ function randomizePlatforms(levelName) {
             height: platform.height
         });
         
-        prevPlatformY = newY;
+        prevX = newX + platform.width;
+        prevY = newY;
     }
     
+    return randomized;
+}
     return randomized;
 }
 
