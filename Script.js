@@ -108,13 +108,14 @@ function randomizePlatforms(levelName) {
     // Always keep the ground platform
     randomized.push({...groundPlatform});
     
-    // Randomize other platforms
+    // Randomize other platforms with more conservative ranges
     for (let i = 1; i < lvl.platforms.length; i++) {
         const platform = lvl.platforms[i];
-        const randomVariation = Math.random() * 200 - 100; // Range: -100 to +100
-        const newX = Math.max(100, Math.min(platform.x + randomVariation, lvl.worldWidth - platform.width - 100));
-        const yVariation = Math.random() * 60 - 30; // Range: -30 to +30
-        const newY = Math.max(150, Math.min(platform.y + yVariation, 450));
+        // Smaller randomization to keep platforms playable
+        const randomVariation = Math.random() * 120 - 60; // Range: -60 to +60
+        const newX = Math.max(50, Math.min(platform.x + randomVariation, lvl.worldWidth - platform.width - 50));
+        const yVariation = Math.random() * 40 - 20; // Range: -20 to +20
+        const newY = Math.max(200, Math.min(platform.y + yVariation, 480));
         randomized.push({
             x: newX,
             y: newY,
@@ -199,8 +200,8 @@ function update() {
     // Reset onGround
     player.onGround = false;
 
-    // Check collision with platforms (jumping platforms only - not the ground)
-    for (let i = 1; i < platforms.length; i++) { // Skip first platform (ground) at index 0
+    // Check collision with all platforms
+    for (let i = 0; i < platforms.length; i++) {
         let p = platforms[i];
         if (player.x < p.x + p.width &&
             player.x + player.width > p.x &&
@@ -208,24 +209,22 @@ function update() {
             player.y + player.height > p.y) {
             // Collision detected
             if (player.vy > 0) { // Player is falling
-                player.y = p.y - player.height;
-                player.vy = 0;
-                player.onGround = true;
+                if (i === 0) {
+                    // Hit ground hazard - restart level
+                    resetPlayer();
+                    levelStartTime = performance.now();
+                    levelFinished = false;
+                    const timeLabel = document.getElementById('timeDisplay');
+                    if (timeLabel) timeLabel.textContent = 'Time: --';
+                    return; // Exit immediately to prevent further processing
+                } else {
+                    // Safe platform - land on it
+                    player.y = p.y - player.height;
+                    player.vy = 0;
+                    player.onGround = true;
+                }
             }
         }
-    }
-
-    // Check if player touched the ground (ground hazard)
-    const groundPlatform = platforms[0];
-    if (player.x < groundPlatform.x + groundPlatform.width &&
-        player.x + player.width > groundPlatform.x &&
-        player.y + player.height > groundPlatform.y) {
-        // Hit ground hazard - restart level
-        resetPlayer();
-        levelStartTime = performance.now();
-        levelFinished = false;
-        const timeLabel = document.getElementById('timeDisplay');
-        if (timeLabel) timeLabel.textContent = 'Time: --';
     }
 
     // Check finish crossing
