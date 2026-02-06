@@ -186,17 +186,28 @@ function draw() {
     // Draw finish line
     if (finishX !== null) {
         ctx.fillStyle = 'blue';
-        ctx.fillRect(finishX, 0, 6, canvas.height);
+        ctx.fillRect(finishX, 0, 8, canvas.height);
         // small flag near the ground level
         let flagY = canvas.height - 120;
         if (platforms.length) flagY = platforms[0].y - 36;
         ctx.fillStyle = 'yellow';
-        ctx.fillRect(finishX + 4, flagY, 12, 8);
+        ctx.fillRect(finishX + 8, flagY, 14, 10);
+        // label
+        ctx.fillStyle = 'black';
+        ctx.font = '14px sans-serif';
+        ctx.fillText('FINISH', finishX - 10, Math.max(20, flagY - 6));
     }
 
     // Draw player
     ctx.fillStyle = 'red';
     ctx.fillRect(player.x, player.y, player.width, player.height);
+
+    // Update running timer display while playing
+    if (!levelFinished && levelStartTime !== null) {
+        const elapsed = ((performance.now() - levelStartTime) / 1000).toFixed(2);
+        const timeLabel = document.getElementById('timeDisplay');
+        if (timeLabel) timeLabel.textContent = 'Time: ' + elapsed + 's';
+    }
 }
 
 function gameLoop() {
