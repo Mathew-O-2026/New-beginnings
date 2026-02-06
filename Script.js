@@ -109,12 +109,12 @@ function randomizePlatforms(levelName) {
     randomized.push({...groundPlatform});
     
     // Keep first jumping platform fixed to spawn under player (guarantee safe spawn)
-    const firstPlatform = lvl.platforms[1];
+    // Player spawns at x=100, width=20, so spans 100-120. Make platform wide to catch them.
     randomized.push({
         x: 50,
         y: 420,
-        width: firstPlatform.width,
-        height: firstPlatform.height
+        width: 200,
+        height: 20
     });
     
     // Randomize other platforms with more conservative ranges
