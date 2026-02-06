@@ -59,11 +59,11 @@ const levels = {
             {x: 4600, y: 320, width: 220, height: 20}
         ],
         powerups: [
-            {x: 520, y: 320, width: 15, height: 15, type: 'speed'},
-            {x: 1320, y: 260, width: 15, height: 15, type: 'speed'},
-            {x: 2080, y: 270, width: 15, height: 15, type: 'speed'},
-            {x: 3150, y: 260, width: 15, height: 15, type: 'speed'},
-            {x: 4100, y: 220, width: 15, height: 15, type: 'speed'}
+            {x: 480, y: 345, width: 15, height: 15, type: 'speed'},
+            {x: 1260, y: 305, width: 15, height: 15, type: 'speed'},
+            {x: 2060, y: 335, width: 15, height: 15, type: 'speed'},
+            {x: 3160, y: 365, width: 15, height: 15, type: 'speed'},
+            {x: 4060, y: 265, width: 15, height: 15, type: 'speed'}
         ]
     },
     medium: {
@@ -96,12 +96,12 @@ const levels = {
             {x: 4600, y: 350, width: 170, height: 20}
         ],
         powerups: [
-            {x: 520, y: 320, width: 15, height: 15, type: 'speed'},
-            {x: 1250, y: 210, width: 15, height: 15, type: 'speed'},
-            {x: 1900, y: 240, width: 15, height: 15, type: 'speed'},
-            {x: 2950, y: 260, width: 15, height: 15, type: 'speed'},
-            {x: 3450, y: 250, width: 15, height: 15, type: 'speed'},
-            {x: 4200, y: 320, width: 15, height: 15, type: 'speed'}
+            {x: 480, y: 345, width: 15, height: 15, type: 'speed'},
+            {x: 1110, y: 325, width: 15, height: 15, type: 'speed'},
+            {x: 1810, y: 345, width: 15, height: 15, type: 'speed'},
+            {x: 2440, y: 285, width: 15, height: 15, type: 'speed'},
+            {x: 3410, y: 275, width: 15, height: 15, type: 'speed'},
+            {x: 4160, y: 345, width: 15, height: 15, type: 'speed'}
         ]
     },
     hard: {
@@ -137,14 +137,14 @@ const levels = {
             {x: 4850, y: 320, width: 120, height: 20}
         ],
         powerups: [
-            {x: 480, y: 280, width: 15, height: 15, type: 'speed'},
-            {x: 1080, y: 240, width: 15, height: 15, type: 'speed'},
-            {x: 1800, y: 340, width: 15, height: 15, type: 'speed'},
-            {x: 2450, y: 320, width: 15, height: 15, type: 'speed'},
-            {x: 3180, y: 220, width: 15, height: 15, type: 'speed'},
-            {x: 3750, y: 250, width: 15, height: 15, type: 'speed'},
-            {x: 4500, y: 240, width: 15, height: 15, type: 'speed'},
-            {x: 4950, y: 280, width: 15, height: 15, type: 'speed'}
+            {x: 420, y: 365, width: 15, height: 15, type: 'speed'},
+            {x: 820, y: 245, width: 15, height: 15, type: 'speed'},
+            {x: 1160, y: 265, width: 15, height: 15, type: 'speed'},
+            {x: 1760, y: 365, width: 15, height: 15, type: 'speed'},
+            {x: 2210, y: 185, width: 15, height: 15, type: 'speed'},
+            {x: 2810, y: 285, width: 15, height: 15, type: 'speed'},
+            {x: 3510, y: 325, width: 15, height: 15, type: 'speed'},
+            {x: 4410, y: 365, width: 15, height: 15, type: 'speed'}
         ]
     }
 };
