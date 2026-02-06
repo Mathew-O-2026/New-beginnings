@@ -22,6 +22,7 @@ let jumpStrength = -10;
 
 let platforms = [];
 let hazards = [];
+let groundHazardLevel = 500; // Y-level where the ground hazard exists
 
 let levelStartTime = null;
 let levelFinished = false;
@@ -35,7 +36,7 @@ const levels = {
         finishX: 2600,
         worldWidth: 2800,
         platforms: [
-            {x: 0, y: 500, width: 2800, height: 20},
+            {x: 0, y: 500, width: 2800, height: 20, isGround: true},
             {x: 150, y: 420, width: 250, height: 20},
             {x: 420, y: 360, width: 180, height: 20},
             {x: 640, y: 300, width: 260, height: 20},
@@ -46,13 +47,6 @@ const levels = {
             {x: 2000, y: 350, width: 190, height: 20},
             {x: 2250, y: 320, width: 220, height: 20},
             {x: 2500, y: 380, width: 180, height: 20}
-        ],
-        hazards: [
-            {x: 550, y: 480, width: 40, height: 20},
-            {x: 900, y: 460, width: 40, height: 20},
-            {x: 1350, y: 440, width: 40, height: 20},
-            {x: 1600, y: 440, width: 40, height: 20},
-            {x: 2150, y: 450, width: 40, height: 20}
         ]
     },
     medium: {
@@ -62,7 +56,7 @@ const levels = {
         finishX: 2700,
         worldWidth: 2900,
         platforms: [
-            {x: 0, y: 500, width: 2900, height: 20},
+            {x: 0, y: 500, width: 2900, height: 20, isGround: true},
             {x: 220, y: 420, width: 160, height: 20},
             {x: 420, y: 360, width: 140, height: 20},
             {x: 600, y: 310, width: 180, height: 20},
@@ -75,15 +69,6 @@ const levels = {
             {x: 2170, y: 350, width: 140, height: 20},
             {x: 2380, y: 300, width: 160, height: 20},
             {x: 2600, y: 360, width: 150, height: 20}
-        ],
-        hazards: [
-            {x: 500, y: 480, width: 40, height: 20},
-            {x: 800, y: 460, width: 40, height: 20},
-            {x: 1100, y: 440, width: 40, height: 20},
-            {x: 1400, y: 420, width: 40, height: 20},
-            {x: 1700, y: 460, width: 40, height: 20},
-            {x: 2050, y: 440, width: 40, height: 20},
-            {x: 2300, y: 450, width: 40, height: 20}
         ]
     },
     hard: {
@@ -93,7 +78,7 @@ const levels = {
         finishX: 2800,
         worldWidth: 3000,
         platforms: [
-            {x: 0, y: 500, width: 3000, height: 20},
+            {x: 0, y: 500, width: 3000, height: 20, isGround: true},
             {x: 180, y: 440, width: 140, height: 20},
             {x: 360, y: 380, width: 120, height: 20},
             {x: 560, y: 320, width: 110, height: 20},
@@ -108,21 +93,38 @@ const levels = {
             {x: 2350, y: 280, width: 120, height: 20},
             {x: 2550, y: 360, width: 130, height: 20},
             {x: 2750, y: 300, width: 150, height: 20}
-        ],
-        hazards: [
-            {x: 480, y: 460, width: 40, height: 20},
-            {x: 700, y: 440, width: 40, height: 20},
-            {x: 880, y: 420, width: 40, height: 20},
-            {x: 1050, y: 440, width: 40, height: 20},
-            {x: 1250, y: 460, width: 40, height: 20},
-            {x: 1550, y: 440, width: 40, height: 20},
-            {x: 1800, y: 450, width: 40, height: 20},
-            {x: 2050, y: 440, width: 40, height: 20},
-            {x: 2300, y: 460, width: 40, height: 20},
-            {x: 2500, y: 450, width: 40, height: 20}
         ]
     }
 };
+
+// Function to randomize platform positions (jumps only, not the ground)
+function randomizePlatforms(levelName) {
+    const lvl = levels[levelName];
+    if (!lvl) return [];
+    
+    const randomized = [];
+    const groundPlatform = lvl.platforms[0];
+    
+    // Always keep the ground platform
+    randomized.push({...groundPlatform});
+    
+    // Randomize other platforms
+    for (let i = 1; i < lvl.platforms.length; i++) {
+        const platform = lvl.platforms[i];
+        const randomVariation = Math.random() * 200 - 100; // Range: -100 to +100
+        const newX = Math.max(100, Math.min(platform.x + randomVariation, lvl.worldWidth - platform.width - 100));
+        const yVariation = Math.random() * 60 - 30; // Range: -30 to +30
+        const newY = Math.max(150, Math.min(platform.y + yVariation, 450));
+        randomized.push({
+            x: newX,
+            y: newY,
+            width: platform.width,
+            height: platform.height
+        });
+    }
+    
+    return randomized;
+}
 
 let keys = {};
 let currentLevel = 'easy';
@@ -133,9 +135,12 @@ function applyLevel(levelName) {
     gravity = lvl.gravity;
     playerSpeed = lvl.speed;
     jumpStrength = lvl.jump;
-    // deep copy platforms so runtime changes don't affect the templates
-    platforms = JSON.parse(JSON.stringify(lvl.platforms));
-    hazards = JSON.parse(JSON.stringify(lvl.hazards || []));
+    // Get randomized platforms
+    platforms = randomizePlatforms(levelName);
+    // Store ground hazard level (the y-position of the ground platform)
+    groundHazardLevel = platforms[0].y;
+    // No more floating hazards - ground is the hazard
+    hazards = [];
     currentLevel = levelName;
     const levelLabel = document.getElementById('currentLevel');
     if (levelLabel) levelLabel.textContent = 'Level: ' + levelName.charAt(0).toUpperCase() + levelName.slice(1);
@@ -194,8 +199,9 @@ function update() {
     // Reset onGround
     player.onGround = false;
 
-    // Check collision with platforms
-    for (let p of platforms) {
+    // Check collision with platforms (jumping platforms only - not the ground)
+    for (let i = 1; i < platforms.length; i++) { // Skip first platform (ground) at index 0
+        let p = platforms[i];
         if (player.x < p.x + p.width &&
             player.x + player.width > p.x &&
             player.y < p.y + p.height &&
@@ -209,19 +215,17 @@ function update() {
         }
     }
 
-    // Check collision with hazards (red obstacles)
-    for (let h of hazards) {
-        if (player.x < h.x + h.width &&
-            player.x + player.width > h.x &&
-            player.y < h.y + h.height &&
-            player.y + player.height > h.y) {
-            // Hit hazard - restart level
-            resetPlayer();
-            levelStartTime = performance.now();
-            levelFinished = false;
-            const timeLabel = document.getElementById('timeDisplay');
-            if (timeLabel) timeLabel.textContent = 'Time: --';
-        }
+    // Check if player touched the ground (ground hazard)
+    const groundPlatform = platforms[0];
+    if (player.x < groundPlatform.x + groundPlatform.width &&
+        player.x + player.width > groundPlatform.x &&
+        player.y + player.height > groundPlatform.y) {
+        // Hit ground hazard - restart level
+        resetPlayer();
+        levelStartTime = performance.now();
+        levelFinished = false;
+        const timeLabel = document.getElementById('timeDisplay');
+        if (timeLabel) timeLabel.textContent = 'Time: --';
     }
 
     // Check finish crossing
@@ -257,15 +261,18 @@ function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     // Draw platforms with camera offset
-    ctx.fillStyle = 'green';
-    for (let p of platforms) {
-        ctx.fillRect(p.x - camera.x, p.y, p.width, p.height);
+    // Ground platform as a hazard (red/orange color)
+    if (platforms.length > 0) {
+        const groundPlatform = platforms[0];
+        ctx.fillStyle = '#FF6B6B'; // Red hazard color for ground
+        ctx.fillRect(groundPlatform.x - camera.x, groundPlatform.y, groundPlatform.width, groundPlatform.height);
     }
-
-    // Draw hazards (red obstacles) with camera offset
-    ctx.fillStyle = '#FF3333';
-    for (let h of hazards) {
-        ctx.fillRect(h.x - camera.x, h.y, h.width, h.height);
+    
+    // Draw jumping platforms (safe platforms in green)
+    ctx.fillStyle = 'green';
+    for (let i = 1; i < platforms.length; i++) {
+        let p = platforms[i];
+        ctx.fillRect(p.x - camera.x, p.y, p.width, p.height);
     }
 
     // Draw finish line with camera offset
