@@ -117,20 +117,35 @@ function randomizePlatforms(levelName) {
         height: 20
     });
     
-    // Randomize other platforms with more conservative ranges
+    // Calculate max jump height for this difficulty
+    const jumpVel = Math.abs(lvl.jump);
+    const gravity = lvl.gravity;
+    const maxJumpHeight = (jumpVel * jumpVel) / (2 * gravity);
+    const maxVerticalGap = Math.floor(maxJumpHeight * 0.7); // Use 70% of max to be safe
+    
+    // Randomize other platforms with difficulty-aware constraints
+    let prevPlatformY = 420; // Start from spawn platform Y
     for (let i = 2; i < lvl.platforms.length; i++) {
         const platform = lvl.platforms[i];
-        // Smaller randomization to keep platforms playable
-        const randomVariation = Math.random() * 120 - 60; // Range: -60 to +60
+        
+        // Horizontal randomization
+        const randomVariation = Math.random() * 100 - 50; // Range: -50 to +50
         const newX = Math.max(50, Math.min(platform.x + randomVariation, lvl.worldWidth - platform.width - 50));
-        const yVariation = Math.random() * 40 - 20; // Range: -20 to +20
-        const newY = Math.max(200, Math.min(platform.y + yVariation, 480));
+        
+        // Vertical randomization - constrained to be reachable
+        // Platform can be lower (easier) or higher (harder) but not more than maxVerticalGap
+        const minY = Math.max(250, prevPlatformY - maxVerticalGap);
+        const maxY = Math.min(480, prevPlatformY + 30);
+        const newY = Math.floor(minY + Math.random() * (maxY - minY));
+        
         randomized.push({
             x: newX,
             y: newY,
             width: platform.width,
             height: platform.height
         });
+        
+        prevPlatformY = newY;
     }
     
     return randomized;
