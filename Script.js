@@ -11,6 +11,11 @@ let player = {
     onGround: false
 };
 
+let camera = {
+    x: 0,
+    y: 0
+};
+
 let gravity = 0.5;
 let playerSpeed = 5;
 let jumpStrength = -10;
@@ -26,37 +31,56 @@ const levels = {
         gravity: 0.4,
         speed: 4,
         jump: -12,
-        finishX: 720,
+        finishX: 2200,
+        worldWidth: 2400,
         platforms: [
-            {x: 0, y: 500, width: 1000, height: 20},
+            {x: 0, y: 500, width: 2400, height: 20},
             {x: 150, y: 420, width: 250, height: 20},
             {x: 420, y: 360, width: 180, height: 20},
-            {x: 640, y: 300, width: 260, height: 20}
+            {x: 640, y: 300, width: 260, height: 20},
+            {x: 950, y: 400, width: 200, height: 20},
+            {x: 1200, y: 320, width: 180, height: 20},
+            {x: 1450, y: 380, width: 220, height: 20},
+            {x: 1750, y: 280, width: 200, height: 20}
         ]
     },
     medium: {
         gravity: 0.55,
         speed: 5,
         jump: -10,
-        finishX: 740,
+        finishX: 2300,
+        worldWidth: 2500,
         platforms: [
-            {x: 0, y: 500, width: 1100, height: 20},
+            {x: 0, y: 500, width: 2500, height: 20},
             {x: 220, y: 420, width: 160, height: 20},
             {x: 420, y: 360, width: 140, height: 20},
-            {x: 600, y: 310, width: 180, height: 20}
+            {x: 600, y: 310, width: 180, height: 20},
+            {x: 850, y: 400, width: 150, height: 20},
+            {x: 1050, y: 340, width: 140, height: 20},
+            {x: 1270, y: 380, width: 160, height: 20},
+            {x: 1500, y: 320, width: 150, height: 20},
+            {x: 1750, y: 360, width: 180, height: 20}
         ]
     },
     hard: {
         gravity: 0.75,
         speed: 6,
         jump: -9,
-        finishX: 760,
+        finishX: 2400,
+        worldWidth: 2600,
         platforms: [
-            {x: 0, y: 500, width: 1200, height: 20},
+            {x: 0, y: 500, width: 2600, height: 20},
             {x: 180, y: 440, width: 140, height: 20},
             {x: 360, y: 380, width: 120, height: 20},
             {x: 560, y: 320, width: 110, height: 20},
-            {x: 760, y: 260, width: 120, height: 20}
+            {x: 760, y: 260, width: 120, height: 20},
+            {x: 950, y: 340, width: 100, height: 20},
+            {x: 1100, y: 280, width: 130, height: 20},
+            {x: 1300, y: 360, width: 110, height: 20},
+            {x: 1480, y: 300, width: 120, height: 20},
+            {x: 1700, y: 380, width: 140, height: 20},
+            {x: 1920, y: 320, width: 130, height: 20},
+            {x: 2150, y: 360, width: 140, height: 20}
         ]
     }
 };
@@ -169,38 +193,38 @@ function update() {
         player.onGround = false;
     }
 
-    // Prevent player from going off screen (simple bounds)
-    if (player.x < 0) player.x = 0;
-    if (player.x + player.width > canvas.width) player.x = canvas.width - player.width;
+    // Update camera to follow player (keep player centered horizontally)
+    const cameraTargetX = player.x - canvas.width / 2 + player.width / 2;
+    camera.x = Math.max(0, Math.min(cameraTargetX, levels[currentLevel].worldWidth - canvas.width));
 }
 
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Draw platforms
+    // Draw platforms with camera offset
     ctx.fillStyle = 'green';
     for (let p of platforms) {
-        ctx.fillRect(p.x, p.y, p.width, p.height);
+        ctx.fillRect(p.x - camera.x, p.y, p.width, p.height);
     }
 
-    // Draw finish line
+    // Draw finish line with camera offset
     if (finishX !== null) {
         ctx.fillStyle = 'blue';
-        ctx.fillRect(finishX, 0, 8, canvas.height);
+        ctx.fillRect(finishX - camera.x, 0, 8, canvas.height);
         // small flag near the ground level
         let flagY = canvas.height - 120;
         if (platforms.length) flagY = platforms[0].y - 36;
         ctx.fillStyle = 'yellow';
-        ctx.fillRect(finishX + 8, flagY, 14, 10);
+        ctx.fillRect(finishX - camera.x + 8, flagY, 14, 10);
         // label
         ctx.fillStyle = 'black';
         ctx.font = '14px sans-serif';
-        ctx.fillText('FINISH', finishX - 10, Math.max(20, flagY - 6));
+        ctx.fillText('FINISH', finishX - camera.x - 10, Math.max(20, flagY - 6));
     }
 
-    // Draw player
+    // Draw player with camera offset
     ctx.fillStyle = 'red';
-    ctx.fillRect(player.x, player.y, player.width, player.height);
+    ctx.fillRect(player.x - camera.x, player.y, player.width, player.height);
 
     // Update running timer display while playing
     if (!levelFinished && levelStartTime !== null) {
