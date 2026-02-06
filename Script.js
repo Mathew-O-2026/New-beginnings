@@ -218,8 +218,6 @@ function randomizePlatforms(levelName) {
     
     return randomized;
 }
-    return randomized;
-}
 
 // Function to load powerups for the current level
 function loadPowerups(levelName) {
