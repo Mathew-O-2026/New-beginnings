@@ -18,10 +18,13 @@ let camera = {
 
 let gravity = 0.5;
 let playerSpeed = 5;
+let basePlayerSpeed = 5; // Store base speed to restore after powerup
 let jumpStrength = -10;
 
 let platforms = [];
 let hazards = [];
+let powerups = []; // Array to store powerup objects
+let speedBoost = null; // Current speed boost {multiplier: 1.5, duration: 5000, startTime: ...}
 let groundHazardLevel = 500; // Y-level where the ground hazard exists
 
 let levelStartTime = null;
@@ -33,10 +36,10 @@ const levels = {
         gravity: 0.4,
         speed: 4,
         jump: -12,
-        finishX: 2600,
-        worldWidth: 2800,
+        finishX: 5200,
+        worldWidth: 5400,
         platforms: [
-            {x: 0, y: 500, width: 2800, height: 20, isGround: true},
+            {x: 0, y: 500, width: 5400, height: 20, isGround: true},
             {x: 150, y: 420, width: 250, height: 20},
             {x: 420, y: 360, width: 180, height: 20},
             {x: 640, y: 300, width: 260, height: 20},
@@ -46,17 +49,31 @@ const levels = {
             {x: 1750, y: 280, width: 200, height: 20},
             {x: 2000, y: 350, width: 190, height: 20},
             {x: 2250, y: 320, width: 220, height: 20},
-            {x: 2500, y: 380, width: 180, height: 20}
+            {x: 2500, y: 380, width: 180, height: 20},
+            {x: 2800, y: 300, width: 200, height: 20},
+            {x: 3100, y: 380, width: 190, height: 20},
+            {x: 3400, y: 320, width: 180, height: 20},
+            {x: 3700, y: 360, width: 220, height: 20},
+            {x: 4000, y: 280, width: 200, height: 20},
+            {x: 4300, y: 350, width: 190, height: 20},
+            {x: 4600, y: 320, width: 220, height: 20}
+        ],
+        powerups: [
+            {x: 520, y: 320, width: 15, height: 15, type: 'speed'},
+            {x: 1320, y: 260, width: 15, height: 15, type: 'speed'},
+            {x: 2080, y: 270, width: 15, height: 15, type: 'speed'},
+            {x: 3150, y: 260, width: 15, height: 15, type: 'speed'},
+            {x: 4100, y: 220, width: 15, height: 15, type: 'speed'}
         ]
     },
     medium: {
         gravity: 0.55,
         speed: 5,
         jump: -10,
-        finishX: 2700,
-        worldWidth: 2900,
+        finishX: 5400,
+        worldWidth: 5600,
         platforms: [
-            {x: 0, y: 500, width: 2900, height: 20, isGround: true},
+            {x: 0, y: 500, width: 5600, height: 20, isGround: true},
             {x: 220, y: 420, width: 160, height: 20},
             {x: 420, y: 360, width: 140, height: 20},
             {x: 600, y: 310, width: 180, height: 20},
@@ -68,17 +85,33 @@ const levels = {
             {x: 1980, y: 280, width: 130, height: 20},
             {x: 2170, y: 350, width: 140, height: 20},
             {x: 2380, y: 300, width: 160, height: 20},
-            {x: 2600, y: 360, width: 150, height: 20}
+            {x: 2600, y: 360, width: 150, height: 20},
+            {x: 2850, y: 310, width: 140, height: 20},
+            {x: 3100, y: 380, width: 170, height: 20},
+            {x: 3350, y: 290, width: 150, height: 20},
+            {x: 3600, y: 340, width: 140, height: 20},
+            {x: 3850, y: 270, width: 160, height: 20},
+            {x: 4100, y: 360, width: 150, height: 20},
+            {x: 4350, y: 310, width: 140, height: 20},
+            {x: 4600, y: 350, width: 170, height: 20}
+        ],
+        powerups: [
+            {x: 520, y: 320, width: 15, height: 15, type: 'speed'},
+            {x: 1250, y: 210, width: 15, height: 15, type: 'speed'},
+            {x: 1900, y: 240, width: 15, height: 15, type: 'speed'},
+            {x: 2950, y: 260, width: 15, height: 15, type: 'speed'},
+            {x: 3450, y: 250, width: 15, height: 15, type: 'speed'},
+            {x: 4200, y: 320, width: 15, height: 15, type: 'speed'}
         ]
     },
     hard: {
         gravity: 0.75,
         speed: 6,
         jump: -9,
-        finishX: 2800,
-        worldWidth: 3000,
+        finishX: 5600,
+        worldWidth: 5800,
         platforms: [
-            {x: 0, y: 500, width: 3000, height: 20, isGround: true},
+            {x: 0, y: 500, width: 5800, height: 20, isGround: true},
             {x: 180, y: 440, width: 140, height: 20},
             {x: 360, y: 380, width: 120, height: 20},
             {x: 560, y: 320, width: 110, height: 20},
@@ -92,7 +125,26 @@ const levels = {
             {x: 2150, y: 200, width: 140, height: 20},
             {x: 2350, y: 280, width: 120, height: 20},
             {x: 2550, y: 360, width: 130, height: 20},
-            {x: 2750, y: 300, width: 150, height: 20}
+            {x: 2750, y: 300, width: 150, height: 20},
+            {x: 2980, y: 380, width: 140, height: 20},
+            {x: 3200, y: 260, width: 120, height: 20},
+            {x: 3450, y: 340, width: 130, height: 20},
+            {x: 3650, y: 290, width: 110, height: 20},
+            {x: 3900, y: 360, width: 140, height: 20},
+            {x: 4120, y: 310, width: 120, height: 20},
+            {x: 4350, y: 380, width: 130, height: 20},
+            {x: 4600, y: 280, width: 140, height: 20},
+            {x: 4850, y: 320, width: 120, height: 20}
+        ],
+        powerups: [
+            {x: 480, y: 280, width: 15, height: 15, type: 'speed'},
+            {x: 1080, y: 240, width: 15, height: 15, type: 'speed'},
+            {x: 1800, y: 340, width: 15, height: 15, type: 'speed'},
+            {x: 2450, y: 320, width: 15, height: 15, type: 'speed'},
+            {x: 3180, y: 220, width: 15, height: 15, type: 'speed'},
+            {x: 3750, y: 250, width: 15, height: 15, type: 'speed'},
+            {x: 4500, y: 240, width: 15, height: 15, type: 'speed'},
+            {x: 4950, y: 280, width: 15, height: 15, type: 'speed'}
         ]
     }
 };
@@ -169,6 +221,15 @@ function randomizePlatforms(levelName) {
     return randomized;
 }
 
+// Function to load powerups for the current level
+function loadPowerups(levelName) {
+    const lvl = levels[levelName];
+    if (!lvl || !lvl.powerups) return [];
+    
+    // Return a copy of the powerups
+    return lvl.powerups.map(p => ({...p, collected: false}));
+}
+
 let keys = {};
 let currentLevel = 'easy';
 
@@ -177,9 +238,14 @@ function applyLevel(levelName) {
     if (!lvl) return;
     gravity = lvl.gravity;
     playerSpeed = lvl.speed;
+    basePlayerSpeed = lvl.speed; // Store base speed
     jumpStrength = lvl.jump;
     // Get randomized platforms
     platforms = randomizePlatforms(levelName);
+    // Load powerups for this level
+    powerups = loadPowerups(levelName);
+    // Reset speed boost
+    speedBoost = null;
     // Store ground hazard level (the y-position of the ground platform)
     groundHazardLevel = platforms[0].y;
     // No more floating hazards - ground is the hazard
@@ -269,6 +335,35 @@ function update() {
         }
     }
 
+    // Check powerup collisions
+    for (let i = 0; i < powerups.length; i++) {
+        let pu = powerups[i];
+        if (!pu.collected &&
+            player.x < pu.x + pu.width &&
+            player.x + player.width > pu.x &&
+            player.y < pu.y + pu.height &&
+            player.y + player.height > pu.y) {
+            // Powerup collected
+            pu.collected = true;
+            if (pu.type === 'speed') {
+                // Activate speed boost for 5 seconds
+                speedBoost = {
+                    multiplier: 1.8,
+                    duration: 5000,
+                    startTime: performance.now()
+                };
+            }
+        }
+    }
+
+    // Handle speed boost duration
+    if (speedBoost !== null) {
+        const elapsed = performance.now() - speedBoost.startTime;
+        if (elapsed >= speedBoost.duration) {
+            speedBoost = null;
+        }
+    }
+
     // Check finish crossing
     if (!levelFinished && finishX !== null && (player.x + player.width) >= finishX) {
         levelFinished = true;
@@ -278,10 +373,11 @@ function update() {
     }
 
     // Handle horizontal movement
+    const effectiveSpeed = speedBoost ? basePlayerSpeed * speedBoost.multiplier : playerSpeed;
     if (keys.right) {
-        player.vx = playerSpeed;
+        player.vx = effectiveSpeed;
     } else if (keys.left) {
-        player.vx = -playerSpeed;
+        player.vx = -effectiveSpeed;
     } else {
         player.vx = 0;
     }
@@ -316,6 +412,23 @@ function draw() {
         ctx.fillRect(p.x - camera.x, p.y, p.width, p.height);
     }
 
+    // Draw powerups
+    for (let i = 0; i < powerups.length; i++) {
+        let pu = powerups[i];
+        if (!pu.collected) {
+            ctx.fillStyle = '#FFD700'; // Gold color for speed powerups
+            ctx.beginPath();
+            ctx.arc(pu.x + pu.width / 2 - camera.x, pu.y + pu.height / 2, pu.width / 2, 0, Math.PI * 2);
+            ctx.fill();
+            // Draw a star or lightning bolt pattern
+            ctx.fillStyle = '#FFA500';
+            ctx.font = 'bold 12px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('⚡', pu.x + pu.width / 2 - camera.x, pu.y + pu.height / 2);
+        }
+    }
+
     // Draw finish line with camera offset
     if (finishX !== null) {
         ctx.fillStyle = 'blue';
@@ -332,8 +445,19 @@ function draw() {
     }
 
     // Draw player with camera offset
-    ctx.fillStyle = 'red';
+    ctx.fillStyle = speedBoost ? '#FF1493' : 'red'; // Pink if boosted
     ctx.fillRect(player.x - camera.x, player.y, player.width, player.height);
+
+    // Draw speed boost indicator
+    if (speedBoost) {
+        const remainingTime = Math.max(0, speedBoost.duration - (performance.now() - speedBoost.startTime));
+        const remainingSeconds = (remainingTime / 1000).toFixed(1);
+        ctx.fillStyle = '#FF1493';
+        ctx.font = 'bold 16px sans-serif';
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'top';
+        ctx.fillText('⚡ BOOST: ' + remainingSeconds + 's', 10, 30);
+    }
 
     // Update running timer display while playing
     if (!levelFinished && levelStartTime !== null) {
